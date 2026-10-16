@@ -1,0 +1,12 @@
+{
+  "name": "agent-harness",
+  "private": true,
+  "description": "Runs the TrueForge agent harness (local mode, SQLite) for the agent app. Not a workspace package; install with `npm install` here.",
+  "scripts": {
+    "start": "./start.sh",
+    "configure": "node --env-file=../.env configure.mjs"
+  },
+  "dependencies": {
+    "@truefoundry/trueforge": "0.1.4"
+  }
+}

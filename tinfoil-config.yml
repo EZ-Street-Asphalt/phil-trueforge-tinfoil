@@ -1,0 +1,61 @@
+# PHIL TrueForge harness on Tinfoil Containers — PRODUCTION.
+#
+# Config only. The image is the generic bootstrap built here (TrueForge from
+# npm + Caddy + build toolchain); PHIL's own config (apps/agent/harness —
+# configure.mjs, agent instructions, scripts, Caddyfile) is fetched at boot
+# from the private customer-updater repo's `main` branch over a read-only
+# deploy key held in Tinfoil's vault. A PHIL release reaches this enclave on
+# its next restart. See apps/agent/docs/trueforge-tinfoil-decisions.md.
+#
+# To move to a new image: pin its digest below, commit, run "Tinfoil Release"
+# for vX.Y.Z, then `tinfoil container update phil-trueforge-prod --tag vX.Y.Z`.
+cvm-version: 0.14.7
+cpus: 2
+memory: 8192
+
+networks:
+  internet:
+    egress: open   # github.com (boot fetch), Tinfoil inference, the PHIL agent app, MCP servers
+
+containers:
+  - name: "phil-trueforge-prod"
+    image: "ghcr.io/ez-street-asphalt/phil-trueforge-tinfoil@sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    networks: [internet]
+    ports:
+      - "8080:8080"
+    # TrueForge keeps sessions/agents in SQLite under /data; configure.mjs
+    # re-applies provider + agent + phil-mcp on every boot, so a fresh volume
+    # comes up fully set up. No persistent volume yet (sessions ephemeral).
+    read_only: false
+    env:
+      - PORT: "8080"
+      - TRUEFORGE_PORT: "4110"
+      - TRUEFORGE_SQLITE_PATH: "/data/trueforge.sqlite"
+      - PHIL_SOURCE_REPO: "git@github.com:EZ-Street-Asphalt/customer-updater.git"
+      - PHIL_SOURCE_REF: "main"
+      - PHIL_SOURCE_PATH: "apps/agent/harness"
+      - PHIL_AGENT_URL: "https://agent.notacrm.com"
+      - TINFOIL_BASE_URL: "https://inference.tinfoil.sh/v1"
+      - AGENT_MODEL: "deepseek-v4-1-flash"
+      # Project-scoped secrets delivered under their own names (Tinfoil forbids
+      # one name in both org and project scope); the harness entrypoint maps
+      # each *_FROM into the name it expects.
+      - TRUEFORGE_PROXY_KEY_FROM: "TRUEFORGE_PROXY_KEY_PROD"
+      - DSH_BRIDGE_KEY_FROM: "DSH_BRIDGE_KEY_PROD"
+    secrets:
+      - PHIL_SOURCE_SSH_KEY_B64
+      - TINFOIL_API_KEY
+      - TRUEFORGE_PROXY_KEY_PROD
+      - DSH_BRIDGE_KEY_PROD
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+    restart: always
+
+shim:
+  upstream-port: 8080
+  paths:
+    - /*
