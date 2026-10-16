@@ -32,7 +32,7 @@ containers:
       - TRUEFORGE_PORT: "4110"
       - TRUEFORGE_SQLITE_PATH: "/data/trueforge.sqlite"
       - PHIL_SOURCE_REPO: "git@github.com:EZ-Street-Asphalt/customer-updater.git"
-      - PHIL_SOURCE_REF: "main"
+      - PHIL_SOURCE_REF: "staging"
       - PHIL_SOURCE_PATH: "apps/agent/harness"
       - PHIL_AGENT_URL: "https://agent.notacrm.com"
       - TINFOIL_BASE_URL: "https://inference.tinfoil.sh/v1"
