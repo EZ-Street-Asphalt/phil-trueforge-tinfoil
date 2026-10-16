@@ -19,7 +19,7 @@ networks:
 
 containers:
   - name: "phil-trueforge-prod"
-    image: "ghcr.io/ez-street-asphalt/phil-trueforge-tinfoil@sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    image: "ghcr.io/ez-street-asphalt/phil-trueforge-tinfoil@sha256:7454719d990a6693d803c0066157171c285ca2f67f9d4f1254b43d4a36aa97d6"
     networks: [internet]
     ports:
       - "8080:8080"
